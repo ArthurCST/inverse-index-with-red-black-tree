@@ -1,6 +1,9 @@
+import java.util.ArrayList;
+
+
 public class TreeRB{
-    private Node raiz;
-    private int qnt;
+    private Node raiz = null;
+    ArrayList<String> keys = new ArrayList<>();
 
     /*Geteres e Seteres*/
     public void setRaiz(Node node){
@@ -13,245 +16,106 @@ public class TreeRB{
     /*FIM - Geteres e Seteres*/
 
     //Diminuir parametros para reuso
-    public Node seek(String key){
-        return search(raiz, key);
+    public Node seek(Word key){
+        return search(this.raiz, key);
     }
 
-    public Node search(Node node, String key){
-        //Verifica se eh folha
-        if(node.isExternal() == true){
-            return node;
-        }
-        //Verifica se foi encontrado
-        if(node.getElemento().compareTo(key) == 0){
-            return node;
-        }
-        //Verifica se esta do lado esquerdo
-        else if(node.getElemento().compareTo(key) > 0){
-            return search(node.getFilhoE(), key);
-        }
-        //Verifica se esta do lado direito
-        else{
-            return search(node.getFilhoD(), key);
-        }
+    public Node search(Node raiz, Word key) {
+        if (raiz == null || (raiz.getElementoW().content.compareTo(key.content) == 0 && raiz.getElementoW().file == key.file))
+            return raiz;
+
+        if (raiz.getElementoW().content.compareTo(key.content) > 0)
+            return search(raiz.getFilhoE(), key);
+
+        return search(raiz.getFilhoD(), key);
     }
 
-    private Node AtualizarCores(Node node)
-    {
-        Node pai = node.getPai();
-        if(pai.getCor().equals("Vermelho"))
-        {
-            Node tio = null;
-            //se pai é filho direito então tio é filho esquerdo de vô
-            if(pai.ehFilhoD())
-                tio = pai.getPai().getFilhoE();
-            else
-                tio = pai.getPai().getFilhoD();
+    public Node searchToAdd(Node root, Node nodeToAdd) {
+		// in this case goes left nodeToAdd.getElemento().compareTo(root.getElemento()) < 0
+		if (nodeToAdd.getElemento().compareTo(root.getElemento()) < 0) {
+			// here the node is added if the spot is right.
+			if (root.getFilhoE()== null) {
+				nodeToAdd.setPai(root);
+				root.setFilhoE(nodeToAdd);
+				return root.getFilhoE();
+			}
+			// if not, continues search.
+			else {
+				return searchToAdd(root.getFilhoE(), nodeToAdd);
+			}
+		}
+		// in this case goes to right.
+		else {
+			// here the node is added if the spot is right.
+			if (root.getFilhoD() == null) {
+				nodeToAdd.setPai(root);
+				root.setFilhoD(nodeToAdd);
+				return root.getFilhoD();
+			}
+			// if not, continues search.
+			else {
+				return searchToAdd(root.getFilhoD(), nodeToAdd);
+			}
+		}
+	}
 
-            //tio eh negro
-            if(tio == null || tio.getCor().equals("Negro"))
-            {
-                System.out.println("Incluir: Situação 3 no noh: " + node.getElemento());
-                node = Rotacionar(node);
-            }
-            //se o tio eh rubro
-            else
-            {
-                System.out.println("Incluir: Situação 2 no noh:" + node.getElemento());
-                tio.setCor("Negro");
-                pai.setCor("Negro");
-                if(!pai.getPai().isRoot()){
-                    pai.getPai().setCor("Vermelho");
-                    node = AtualizarCores(node.getPai().getPai());
-                }
-            }
-        }
+    public void incluir(Word key){
 
-        return node;
+    		Node node = new Node(null, key);
+
+    		if (getRaiz() == null) {
+    			node.setCor("Negro");
+    			setRaiz(node);
+    		} else {
+    			Node added = searchToAdd(getRaiz(), node);
+    			balanceCaseOne(added);
+    		}
     }
 
-    private Node buscarPai(Node node, String key) {
-        //Verifica se o no não tem filho
-        if (node.isExternal()) {
-            return node;
-        }
-        //Verifica se o no que procura esta do lado esquerdo
-        if (node.getElemento().compareTo(key) > 0)
-        {
-            if(node.getFilhoE() == null)
-                return node;
-            else
-                return buscarPai(node.getFilhoE(), key);
-        }
-        //Verifica se o no que procura esta do lado direito
-        else
-        {
-            if(node.getFilhoD() == null)
-                return node;
-            else
-                return buscarPai(node.getFilhoD(), key);
-        }
-    }
-
-    public Node incluir(String key) {
-        
-        if(raiz == null){
-            Node raiz = new Node(null, key); 
-            setRaiz(raiz);
-            
-            return (raiz);
-        }else{
-            //Busca o pai do no que vai ser inserido
-            Node pai = buscarPai(raiz, key);
-            //Cria o novo no
-            Node novo = new Node(pai, key);
-
-            //Verifica se o novo no eh filho esquerdo do pai buscado
-            if (novo.getElemento().compareTo(pai.getElemento())<=0)
-                pai.setFilhoE(novo);
-            //Verifica se o novo no eh filho direito do pai buscado
-            else
-                pai.setFilhoD(novo);
-            qnt++;
-
-            AtualizarCores(novo);
-
-            return novo;
-        }
-    }
-
-   private Node Rotacionar(Node node)
-       {
-           Node retorno = null;
-           Node avo = node.getPai().getPai();
-           Node pai = node.getPai();
-
-           //Rotacao simples a direita
-           if(node.ehFilhoE() && pai.ehFilhoE())
-           {
-               retorno = node.getPai();
-               avo.setCor("Vermelho");
-               pai.setCor("Negro");
-
-               RotacaoSimplesDireita(avo);
-           }
-           //Rotacao simples a esquerda
-           else if(node.ehFilhoD() && pai.ehFilhoD())
-           {
-               retorno = node.getPai();
-               avo.setCor("Vermelho");
-               pai.setCor("Negro");
-
-               RotacaoSimplesEsquerda(avo);
-
-           }
-           //Rotacao dupla esquerda
-           else if(pai.ehFilhoD())
-           {
-               retorno = node;
-               avo.setCor("Vermelho");
-               node.setCor("Negro");
-
-               RotacaoDuplaEsquerda(avo);
-           }
-           //Rotacao dupla direita
-           else
-           {
-               retorno = node;
-               avo.setCor("Vermelho");
-               node.setCor("Negro");
-
-               RotacaoDuplaDireita(avo);
-           }
-
-           return retorno;
-       }
    public void RotacaoSimplesEsquerda(Node node) {
         System.out.println("Rotacao Simples Esquerda " + node.getElemento());
 
-        Node netoE = null;
-
-        //se necessario, atualiza a raiz
-        if(node.isRoot())
-            raiz = node.getFilhoD();
-
-        //guarda o netoE e atualiza suas referencia para o pai
-        if(node.getFilhoD().getFilhoE() != null) {
-            netoE = node.getFilhoD().getFilhoE();
-            netoE.setPai(node);
+        Node aux = node.getFilhoD();
+        node.setFilhoD(aux.getFilhoE());
+        if(aux.getFilhoE()!=null){
+        	aux.getFilhoE().setPai(node);
+        }
+        aux.setPai(node.getPai());
+        if(node.getPai() == null){
+        	setRaiz(aux);
+        }else if(node.ehFilhoE()){
+        	node.getPai().setFilhoE(aux);;
+        }else{
+        	node.getPai().setFilhoD(aux);
         }
 
-        //Atualiza as referencias do filho direito do no
-        node.getFilhoD().setPai(node.getPai());
-        node.getFilhoD().setFilhoE(node);
+        aux.setFilhoE(node);
+        node.setPai(aux);
 
-        //Atualiza as referencias do pai do no se existir
-        if(node.getPai() != null) {
-            if(node.getElemento().compareTo(node.getPai().getElemento()) > 0)
-                node.getPai().setFilhoD(node.getFilhoD());
-            else
-                node.getPai().setFilhoE(node.getFilhoD());
-        }
-
-        //Atualiza as referencias do no
-        node.setPai(node.getFilhoD());
-        //if(netoE != null)
-            node.setFilhoD(netoE);
-        //else
-        //   no.setFilhoD(null);
-
-        //exibirArvore(raiz);
     }
 
     public void RotacaoSimplesDireita(Node node) {
         System.out.println("Rotacao Simples Direita " + node.getElemento());
 
-        Node netoD = null;
-
-        //se necessario, atuliza a raiz
-        if(node.isRoot())
-            raiz = node.getFilhoE();
-
-        //guarda o netoD
-        if(node.getFilhoE().getFilhoD() != null) {
-            netoD = node.getFilhoE().getFilhoD();
-            netoD.setPai(node);
+        Node aux = node.getFilhoE();
+        node.setFilhoE(aux.getFilhoD());
+        if(aux.getFilhoD()!=null){
+        	aux.getFilhoD().setPai(node);
+        }
+        aux.setPai(node.getPai());
+        if(node.getPai() == null){
+        	setRaiz(aux);
+        }else if(node.ehFilhoD()){
+        	node.getPai().setFilhoD(aux);;
+        }else{
+        	node.getPai().setFilhoE(aux);
         }
 
-        //Atualiza as referencias do filho esquerdo do no
-        node.getFilhoE().setPai(node.getPai());
-        node.getFilhoE().setFilhoD(node);
-
-        //Atualiza as referencias do pai do no, se existir
-        if(node.getPai() != null){
-            if(node.getElemento().compareTo(node.getPai().getElemento()) > 0)
-                node.getPai().setFilhoD(node.getFilhoE());
-            else
-                node.getPai().setFilhoE(node.getFilhoE());
-        }
-
-        //Atualiza as referencias do no
-        node.setPai(node.getFilhoE());
-        //if(netoD != null)
-            node.setFilhoE(netoD);
-        //else
-        //    no.setFilhoE(null);
-
-        //exibirArvore(raiz);
+        aux.setFilhoD(node);
+        node.setPai(aux);
     }
 
-    public void RotacaoDuplaEsquerda(Node node) {
-        RotacaoSimplesDireita(node.getFilhoD());
-        RotacaoSimplesEsquerda(node);
-    }
-
-    public void RotacaoDuplaDireita(Node node) {
-        RotacaoSimplesEsquerda(node.getFilhoE());
-        RotacaoSimplesDireita(node);
-    }
-
-
-    //Metodo que mostra as caracteristicas do no *OBS: Faz a verificações para não dar erro de referencia nula
+    //Metodo que mostra as caracteristicas do no *OBS: Faz a verificaÃ§Ãµes para nÃ£o dar erro de referencia nula
     public void Visite(Node node) {
         System.out.print("Elemento:" + node.getElemento() + " Cor: " + node.getCor());
         if (!node.isRoot())
@@ -267,6 +131,7 @@ public class TreeRB{
     }
 
     public void exibirArvore(Node node) {
+
         if (node.isInternal() && node.getFilhoE() != null) {
             exibirArvore(node.getFilhoE());
         }
@@ -278,4 +143,112 @@ public class TreeRB{
         }
     }
 
+
+    public Node getAvo(Node node){
+    	Node pai = node.getPai();
+
+    	if (pai != null) {
+    		Node avo = pai.getPai();
+
+    		if (avo != null) {
+    			return avo;
+    		} else {
+    			return null;
+    		}
+    	} else {
+    		return null;
+    	}
+
+    }
+
+    public Node getTio(Node node){
+    	Node pai = node.getPai();
+    	Node avo = getAvo(node);
+
+    	if(pai!=null && avo != null){
+    		if (avo.getFilhoD()!= null && avo.getFilhoE()!= null){
+    			if (avo.getFilhoE().getElemento().compareTo(pai.getElemento()) == 0) {
+    				return avo.getFilhoD();
+    			} else {
+    				return avo.getFilhoE();
+    			}
+        	}else{
+        		return null;
+        	}
+    	}else{
+    		return null;
+    	}
+    }
+
+    public void balanceCaseOne(Node added) {
+    	if (added.isRoot()) {
+    		added.setCor("Negro");
+    	}else{
+    		balanceCaseTwo(added);
+    	}
+
+    }
+    public void balanceCaseTwo(Node added) {
+
+    	if (added.getPai().getCor().compareTo("Vermelho") == 0) {
+    		balanceCaseThree(added);
+    	}
+
+    }
+
+    public void balanceCaseThree(Node added){
+    	Node tio = getTio(added);
+
+	    if(tio != null && tio.getCor().compareTo("Vermelho")==0){
+	    	Node pai = added.getPai();
+	    	pai.setCor("Negro");
+	    	tio.setCor("Negro");
+
+	    	Node avo = getAvo(added);
+	    	if(!avo.isRoot()){
+	    		avo.setCor("Vermelho");
+	    	}
+	    	balanceCaseOne(added);
+	    }else{
+	    	balanceCaseFour(added);
+	    }
+	}
+
+    public void balanceCaseFour(Node added){
+    	Node pai = added.getPai();
+
+    	if (added.ehFilhoD()&& pai.ehFilhoE()) {
+    		RotacaoSimplesEsquerda(pai);
+    		added = added.getFilhoE();
+    	} else if(added.ehFilhoE()&& pai.ehFilhoD()) {
+    		RotacaoSimplesDireita(pai);
+    		added = added.getFilhoD();
+    	}else{
+    		balanceCaseFive(added);
+    	}
+
+    }
+
+    public void balanceCaseFive(Node added){
+
+    	Node pai = added.getPai();
+    	Node avo = getAvo(added);
+
+    	pai.setCor("Negro");
+    	avo.setCor("Vermelho");
+
+    	if (added.ehFilhoE() && pai.ehFilhoE()) {
+    		RotacaoSimplesDireita(avo);
+    	} else {
+    		RotacaoSimplesEsquerda(avo);
+    	}
+    }
+
+    public void changeColor(Node node) {
+    	if (node.getCor().compareTo("Negro")==0) {
+			node.setCor("Vermelho");
+		} else {
+			node.setCor("Negro");
+		}
+	}
 }

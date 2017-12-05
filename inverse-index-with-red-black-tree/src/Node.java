@@ -1,5 +1,5 @@
 public class Node {
-    private String elemento;
+    private Word elemento;
     private Node parent;
     private Node left;
     private Node right;
@@ -8,7 +8,7 @@ public class Node {
 
     public Node() {}
 
-    public Node(Node pai, String elemento) {
+    public Node(Node pai, Word elemento) {
         this.parent = pai;
         this.elemento = elemento;
         this.color = "Vermelho";
@@ -31,11 +31,15 @@ public class Node {
         this.parent = pai;
     }
 
-    public String getElemento() {
+    public Word getElementoW() {
         return elemento;
     }
 
-    public void setElemento(String elemento) {
+    public String getElemento() {
+        return elemento.content;
+    }
+
+    public void setElemento(Word elemento) {
         this.elemento = elemento;
     }
 
@@ -55,7 +59,7 @@ public class Node {
         this.right = filhoD;
     }
 
-    //Retorna se o No é raiz (não tem parent)
+    //Retorna se o No Ã© raiz (nÃ£o tem parent)
     public boolean isRoot()
     {
         return this.parent == null;
@@ -69,27 +73,27 @@ public class Node {
         return this.right != null;
     }
 
-    //Retorna se o No é interno (tem filho)
+    //Retorna se o No eh interno (tem filho)
     public boolean isInternal()
     {
         return this.left != null || this.right != null;
     }
-    //Retorna se o No é externo (não tem filho)
+    //Retorna se o No EH externo (nao tem filho)
     public boolean isExternal()
     {
         return this.right == null && this.left == null;
     }
 
-    //Retorna se o No é filho esquerdo
+    //Retorna se o No Ã© filho esquerdo
     public boolean ehFilhoE()
     {
-        return this.elemento.compareTo(this.parent.getElemento()) <= 0;
+        return this.elemento.content.compareTo(this.parent.getElemento()) <= 0;
     }
 
-    //Retorna se o No é filho direito
+    //Retorna se o No Ã© filho direito
     public boolean ehFilhoD()
     {
-        return this.elemento.compareTo(this.parent.getElemento()) < 0;
+        return this.elemento.content.compareTo(this.parent.getElemento()) < 0;
     }
 
     public String getCor() {
@@ -107,5 +111,6 @@ public class Node {
     public void setDuplo(Boolean duplo) {
         this.duplo = duplo;
     }
+
 
 }
